@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="日落山湖">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14122f"/>
+      <stop offset="0.3" stop-color="#3b2263"/>
+      <stop offset="0.55" stop-color="#8c3f72"/>
+      <stop offset="0.72" stop-color="#d96a63"/>
+      <stop offset="0.86" stop-color="#ff9f6b"/>
+      <stop offset="1" stop-color="#ffcf94"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ef9a72"/>
+      <stop offset="0.12" stop-color="#c2647a"/>
+      <stop offset="0.35" stop-color="#7a3f6b"/>
+      <stop offset="0.7" stop-color="#2a1840"/>
+      <stop offset="1" stop-color="#120b24"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff3c4"/>
+      <stop offset="1" stop-color="#ffb347"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9a8" stop-opacity="0.85"/>
+      <stop offset="0.45" stop-color="#ffab5e" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#ff7e5f" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="600" height="600" fill="url(#sky)"/>
+
+  <!-- 星星 -->
+  <g fill="#ffffff">
+    <circle cx="64" cy="52" r="1.7" opacity="0.85"/>
+    <circle cx="132" cy="96" r="1.1" opacity="0.6"/>
+    <circle cx="208" cy="38" r="1.4" opacity="0.75"/>
+    <circle cx="292" cy="86" r="1" opacity="0.5"/>
+    <circle cx="366" cy="46" r="1.7" opacity="0.8"/>
+    <circle cx="452" cy="92" r="1.2" opacity="0.6"/>
+    <circle cx="520" cy="36" r="1.5" opacity="0.7"/>
+    <circle cx="562" cy="122" r="1" opacity="0.45"/>
+    <circle cx="96" cy="152" r="1.1" opacity="0.5"/>
+    <circle cx="486" cy="170" r="1.3" opacity="0.55"/>
+    <circle cx="540" cy="212" r="1" opacity="0.4"/>
+  </g>
+
+  <!-- 太阳 -->
+  <circle cx="300" cy="305" r="168" fill="url(#glow)"/>
+  <circle cx="300" cy="305" r="54" fill="url(#sun)"/>
+
+  <!-- 薄云 -->
+  <g fill="#3c2459" opacity="0.4">
+    <rect x="64" y="268" width="158" height="6" rx="3"/>
+    <rect x="392" y="238" width="126" height="5" rx="2.5"/>
+    <rect x="150" y="326" width="94" height="4" rx="2"/>
+    <rect x="430" y="316" width="110" height="4" rx="2"/>
+  </g>
+
+  <!-- 飞鸟 -->
+  <g fill="none" stroke="#2b1740" stroke-width="2.4" stroke-linecap="round" opacity="0.75">
+    <path d="M392 196 q10 -8 20 0 q10 8 20 0"/>
+    <path d="M438 172 q7 -6 14 0 q7 6 14 0"/>
+    <path d="M356 224 q6 -5 12 0 q6 5 12 0"/>
+  </g>
+
+  <!-- 远山 -->
+  <path d="M0 380 L60 300 L110 340 L170 246 L230 330 L300 270 L360 344 L430 280 L495 340 L550 292 L600 350 L600 380 Z" fill="#3b2560"/>
+  <g fill="#e8d5ff" opacity="0.45">
+    <path d="M170 246 L190 278 L178 272 L166 284 L154 272 Z"/>
+    <path d="M430 280 L448 308 L436 302 L424 314 L412 302 Z"/>
+    <path d="M550 292 L564 314 L554 310 L544 320 L536 310 Z"/>
+  </g>
+
+  <!-- 近山 -->
+  <path d="M0 380 L70 336 L140 366 L220 312 L300 372 L380 318 L460 368 L540 326 L600 362 L600 380 Z" fill="#251740"/>
+
+  <!-- 湖面 -->
+  <rect y="380" width="600" height="220" fill="url(#water)"/>
+
+  <!-- 山的倒影 -->
+  <path d="M0 380 L80 394 L150 384 L240 400 L330 386 L420 402 L510 388 L600 398 L600 452 L0 452 Z" fill="#1b1032" opacity="0.3"/>
+
+  <!-- 太阳倒影 -->
+  <g fill="#ffd9a0">
+    <rect x="252" y="398" width="96" height="5" rx="2.5" opacity="0.6"/>
+    <rect x="264" y="414" width="72" height="4" rx="2" opacity="0.5"/>
+    <rect x="238" y="430" width="124" height="4" rx="2" opacity="0.4"/>
+    <rect x="270" y="446" width="60" height="3" rx="1.5" opacity="0.32"/>
+    <rect x="226" y="462" width="148" height="3" rx="1.5" opacity="0.24"/>
+    <rect x="284" y="478" width="32" height="2.5" rx="1.25" opacity="0.2"/>
+    <rect x="248" y="494" width="104" height="2.5" rx="1.25" opacity="0.16"/>
+    <rect x="300" y="510" width="40" height="2" rx="1" opacity="0.14"/>
+  </g>
+
+  <!-- 小船 -->
+  <g fill="#0b0716">
+    <path d="M152 452 L152 408 L188 452 Z"/>
+    <path d="M138 456 h62 l-7 9 h-48 z"/>
+  </g>
+  <path d="M150 460 q8 8 16 0 q8 -8 16 0" fill="none" stroke="#ffd9a0" stroke-width="1.4" opacity="0.3"/>
+
+  <!-- 前景山丘 -->
+  <path d="M0 600 L0 542 Q120 512 240 548 Q360 584 480 544 Q540 524 600 540 L600 600 Z" fill="#0b0716"/>
+
+  <!-- 松树 -->
+  <g fill="#08050f">
+    <path d="M90 456 L126 520 L112 518 L146 566 L126 564 L160 600 L20 600 L54 564 L34 566 L68 518 L54 520 Z"/>
+    <path d="M172 502 L196 548 L184 546 L210 582 L194 580 L218 600 L126 600 L150 580 L134 582 L160 546 L148 548 Z"/>
+    <path d="M520 488 L552 544 L536 542 L566 586 L548 584 L578 600 L462 600 L492 584 L474 586 L504 542 L488 544 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,31 @@
+{
+  "name": "login-system",
+  "version": "2.0.0",
+  "description": "网页版拼图游戏：注册登录、修改密码、成绩记录与排行榜",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "setup-db": "node setup-db.js",
+    "db:check": "node db-check.js",
+    "change-password": "node change-password.js",
+    "seed-demo": "node seed-demo.js",
+    "smoke": "node tests/smoke-test.js",
+    "test": "node tests/smoke-test.js"
+  },
+  "keywords": [
+    "express",
+    "mysql",
+    "puzzle",
+    "login"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "mysql2": "^3.24.4"
+  }
+}

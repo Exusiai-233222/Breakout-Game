@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="霓虹光环">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#050a1c"/>
+      <stop offset="0.45" stop-color="#0b1030"/>
+      <stop offset="1" stop-color="#1b0a30"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd166" stop-opacity="0.8"/>
+      <stop offset="0.5" stop-color="#ff5d9e" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!-- 背景网格 -->
+  <g stroke="#7de3ff" stroke-width="1" opacity="0.07">
+    <path d="M0 60 H600 M0 120 H600 M0 180 H600 M0 240 H600 M0 300 H600 M0 360 H600 M0 420 H600 M0 480 H600 M0 540 H600"/>
+    <path d="M60 0 V600 M120 0 V600 M180 0 V600 M240 0 V600 M300 0 V600 M360 0 V600 M420 0 V600 M480 0 V600 M540 0 V600"/>
+  </g>
+
+  <!-- 彩色光斑 -->
+  <g>
+    <circle cx="118" cy="148" r="132" fill="#ff7a3c" opacity="0.72"/>
+    <circle cx="432" cy="112" r="112" fill="#ff3d9a" opacity="0.66"/>
+    <circle cx="268" cy="336" r="172" fill="#3b82f6" opacity="0.7"/>
+    <circle cx="524" cy="430" r="128" fill="#22d3ee" opacity="0.58"/>
+    <circle cx="336" cy="524" r="104" fill="#8b5cf6" opacity="0.72"/>
+    <circle cx="76" cy="470" r="86" fill="#84cc16" opacity="0.42"/>
+    <circle cx="300" cy="120" r="58" fill="#facc15" opacity="0.5"/>
+  </g>
+
+  <!-- 同心光环 -->
+  <g fill="none" stroke="#ffffff" transform="translate(330 320)">
+    <circle r="62" stroke-width="1.6" stroke-opacity="0.38"/>
+    <circle r="108" stroke-width="1.2" stroke-opacity="0.3"/>
+    <circle r="154" stroke-width="1" stroke-opacity="0.22"/>
+    <circle r="202" stroke-width="0.9" stroke-opacity="0.16"/>
+    <circle r="252" stroke-width="0.8" stroke-opacity="0.1"/>
+  </g>
+
+  <!-- 斜向光带 -->
+  <g stroke="url(#beam)" fill="none" stroke-linecap="round">
+    <path d="M-20 520 L360 -20" stroke-width="7" opacity="0.55"/>
+    <path d="M60 640 L470 -40" stroke-width="2" opacity="0.4"/>
+    <path d="M-40 300 L280 -40" stroke-width="1.4" opacity="0.3"/>
+  </g>
+
+  <!-- 斜线纹理 -->
+  <g stroke="#ffffff" stroke-width="1" opacity="0.08">
+    <path d="M0 600 L600 0 M0 660 L660 0 M0 540 L540 0"/>
+  </g>
+
+  <!-- 星点 -->
+  <g fill="#ffffff">
+    <circle cx="46" cy="64" r="1.8" opacity="0.9"/>
+    <circle cx="510" cy="46" r="1.5" opacity="0.8"/>
+    <circle cx="572" cy="188" r="1.2" opacity="0.6"/>
+    <circle cx="368" cy="244" r="1.6" opacity="0.7"/>
+    <circle cx="152" cy="286" r="1.2" opacity="0.55"/>
+    <circle cx="458" cy="530" r="1.7" opacity="0.75"/>
+    <circle cx="204" cy="556" r="1.1" opacity="0.5"/>
+    <circle cx="250" cy="52" r="1.3" opacity="0.6"/>
+    <circle cx="56" cy="392" r="1.4" opacity="0.65"/>
+    <circle cx="556" cy="320" r="1" opacity="0.45"/>
+    <circle cx="408" cy="424" r="1.5" opacity="0.6"/>
+    <circle cx="94" cy="196" r="1" opacity="0.5"/>
+  </g>
+
+  <!-- 左下角弧线装饰 -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M-20 600 Q120 520 80 400" stroke="#22d3ee" stroke-width="3" opacity="0.5"/>
+    <path d="M-10 600 Q160 540 130 430" stroke="#ff5d9e" stroke-width="2" opacity="0.4"/>
+    <path d="M20 600 Q200 560 180 470" stroke="#ffd166" stroke-width="1.5" opacity="0.35"/>
+  </g>
+</svg>
