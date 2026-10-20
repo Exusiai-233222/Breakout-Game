@@ -1,155 +1,91 @@
-/**
- * 个人中心：我的名次、最佳成绩、最近记录、修改密码
- */
-import { api, requireUser } from "./api.js";
+import { api, requireUser, logout } from "./api.js";
 import { mountNav } from "./nav.js";
-import { setButtonLoading, toast, ui } from "./ui.js";
 
-const el = (id) => document.getElementById(id);
+const userNameEl = document.getElementById("navUser");
+const profileName = document.getElementById("profileName");
+const profileEmail = document.getElementById("profileEmail");
+const profileJoined = document.getElementById("profileJoined");
+const avatar = document.getElementById("avatar");
+const statsGrid = document.getElementById("statsGrid");
 
-function renderUser(user) {
-  el("avatar").textContent = (user.username || "?").slice(0, 1).toUpperCase();
-  el("profileName").textContent = user.username;
-  el("profileEmail").textContent = user.email || "未填写邮箱";
-  el("profileJoined").textContent = `加入时间：${ui.dateOnly(user.createdAt)}`;
+// 表单
+const passwordForm = document.getElementById("passwordForm");
+const oldPassword = document.getElementById("oldPassword");
+const newPassword = document.getElementById("newPassword");
+const confirmPassword = document.getElementById("confirmPassword");
+const passwordError = document.getElementById("passwordError");
+const passwordSuccess = document.getElementById("passwordSuccess");
+
+async function loadProfile() {
+  try {
+    const user = await requireUser();
+    if (!user) return;
+    mountNav(user);
+
+    // 基本信息
+    profileName.textContent = user.username;
+    profileEmail.textContent = user.email;
+    profileJoined.textContent = `加入时间：${new Date(user.createdAt).toLocaleDateString()}`;
+    avatar.textContent = user.username.charAt(0).toUpperCase();
+
+    // 加载战绩
+    const data = await api("/records/me");
+
+    // 只取弹珠游戏的数据（size === 3）
+    const stat = data.stats.find((s) => s.size === 3) || {
+      bestLevel: "-",
+      bestMs: null,
+      rank: "-",
+      totalPlayers: 0,
+      plays: 0,
+    };
+
+    let timeStr = "-";
+    if (stat.bestMs) {
+      timeStr = (stat.bestMs / 1000).toFixed(1) + "s";
+    }
+
+    statsGrid.innerHTML = `
+      <section class="card">
+        <h2><span class="dot"></span>弹珠挑战</h2>
+        <div style="margin-top: 15px; line-height: 2;">
+          <p>最高关卡：<strong style="color: #ffcc00; font-size: 20px;">第 ${stat.bestLevel} 关</strong></p>
+          <p>最佳用时：${timeStr}</p>
+          <p>历史排名：第 ${stat.rank} 名 / 共 ${stat.totalPlayers} 人</p>
+          <p>游玩局数：${stat.plays} 局</p>
+        </div>
+      </section>
+    `;
+  } catch (error) {
+    console.error("加载个人信息失败", error);
+  }
 }
 
-function createStatCard(item) {
-  const card = document.createElement("article");
-  card.className = "stat-card";
+passwordForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  passwordError.textContent = "";
+  passwordSuccess.textContent = "";
 
-  const name = document.createElement("div");
-  name.className = "name";
-  const level = document.createElement("span");
-  level.textContent = `${ui.sizeName(item.size)} · ${ui.sizeLabel(item.size)}`;
-  const plays = document.createElement("span");
-  plays.textContent = `${item.plays} 局`;
-  name.append(level, plays);
-
-  const big = document.createElement("div");
-  big.className = "big";
-  big.textContent = item.bestMs ? ui.duration(item.bestMs) : "--:--.-";
-
-  const sub = document.createElement("div");
-  sub.className = "sub";
-  sub.textContent = item.bestMs
-    ? `最佳 ${item.bestMoves} 步 · 第 ${item.rank} 名 / 共 ${item.totalPlayers} 人`
-    : "还没有完成过该难度";
-
-  card.append(name, big, sub);
-  return card;
-}
-
-function renderStats(stats) {
-  const grid = el("statsGrid");
-  grid.replaceChildren(...stats.map(createStatCard));
-}
-
-function renderRecords(records) {
-  const tbody = el("recentBody");
-  tbody.replaceChildren();
-
-  if (!records.length) {
-    const row = document.createElement("tr");
-    const cell = document.createElement("td");
-    cell.colSpan = 4;
-    cell.className = "empty";
-    const emoji = document.createElement("span");
-    emoji.className = "emoji";
-    emoji.textContent = "🧩";
-    cell.append(emoji, "还没有成绩记录，去完成一局拼图吧！");
-    row.append(cell);
-    tbody.append(row);
+  if (newPassword.value !== confirmPassword.value) {
+    passwordError.textContent = "两次输入的新密码不一致";
     return;
   }
 
-  for (const record of records) {
-    const row = document.createElement("tr");
-
-    const difficulty = document.createElement("td");
-    difficulty.textContent = `${ui.sizeName(record.size)} · ${ui.sizeLabel(record.size)}`;
-
-    const time = document.createElement("td");
-    time.className = "num";
-    time.textContent = ui.duration(record.durationMs);
-
-    const moves = document.createElement("td");
-    moves.className = "num";
-    moves.textContent = `${record.moves} 步`;
-
-    const date = document.createElement("td");
-    date.textContent = ui.shortDate(record.completedAt);
-
-    row.append(difficulty, time, moves, date);
-    tbody.append(row);
-  }
-}
-
-function bindPasswordForm() {
-  const form = el("passwordForm");
-  const errorBox = el("passwordError");
-  const successBox = el("passwordSuccess");
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    errorBox.classList.remove("show");
-    successBox.classList.remove("show");
-
-    const oldPassword = el("oldPassword").value;
-    const newPassword = el("newPassword").value;
-    const confirmPassword = el("confirmPassword").value;
-
-    const showError = (message) => {
-      errorBox.textContent = message;
-      errorBox.classList.add("show");
-    };
-
-    if (!oldPassword) return showError("请输入原密码");
-    if (newPassword.length < 6) return showError("新密码至少 6 位");
-    if (newPassword === oldPassword) return showError("新密码不能与原密码相同");
-    if (newPassword !== confirmPassword) return showError("两次输入的新密码不一致");
-
-    const button = el("passwordSubmit");
-    setButtonLoading(button, true, "保存中…");
-
-    try {
-      await api("/password", {
-        method: "POST",
-        body: { oldPassword, newPassword },
-      });
-
-      form.reset();
-      successBox.textContent = "密码修改成功，下次请使用新密码登录。";
-      successBox.classList.add("show");
-      toast("密码修改成功", "success");
-    } catch (error) {
-      showError(error.message);
-    } finally {
-      setButtonLoading(button, false);
-    }
-  });
-}
-
-async function init() {
-  const user = await requireUser();
-  if (!user) return;
-
-  mountNav(user);
-  bindPasswordForm();
-
   try {
-    const data = await api("/records/me");
-    renderUser(data.user);
-    renderStats(data.stats);
-    renderRecords(data.records);
+    const res = await api("/password", {
+      method: "POST",
+      body: {
+        oldPassword: oldPassword.value,
+        newPassword: newPassword.value,
+      },
+    });
+    passwordSuccess.textContent = res.message;
+    passwordForm.reset();
   } catch (error) {
-    if (error.status === 401) return;
-    toast(`数据加载失败：${error.message}`, "error");
+    passwordError.textContent = error.message;
   }
-}
-
-init().catch((error) => {
-  console.error(error);
-  toast(`页面初始化失败：${error.message}`, "error");
 });
+
+document.getElementById("authBtn").addEventListener("click", () => logout());
+
+loadProfile();

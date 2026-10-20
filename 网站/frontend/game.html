@@ -3,23 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0918" />
-    <title>拼图游戏</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧩%3C/text%3E%3C/svg%3E"
-    />
+    <title>弹珠撞墙 · 弹珠游戏</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-
   <body>
     <header class="topbar">
       <a class="brand" href="game.html">
-        <span class="brand-mark" aria-hidden="true">🧩</span>
-        拼图游戏
+        <span class="brand-mark"></span>
+        弹珠挑战
       </a>
-      <nav class="nav" aria-label="主导航">
-        <a href="game.html" class="active" aria-current="page">游戏</a>
+      <nav class="nav">
+        <a href="game.html" class="active">游戏</a>
         <a href="leaderboard.html">排行榜</a>
         <a href="profile.html">我的</a>
       </nav>
@@ -32,109 +26,70 @@
     </header>
 
     <main class="page game-page">
+      <!-- 游戏主区域 -->
       <section class="card stage">
         <div class="stage-head">
+          <div class="stat">
+            <span class="stat-label">关卡</span>
+            <span class="stat-value" id="levelDisplay" style="color: #ffcc00"
+              >1</span
+            >
+          </div>
+          <div class="stat">
+            <span class="stat-label">目标分</span>
+            <span class="stat-value" id="targetDisplay" style="color: #ff4444"
+              >50</span
+            >
+          </div>
+          <div class="stat">
+            <span class="stat-label">得分</span>
+            <span class="stat-value" id="scoreDisplay">0</span>
+          </div>
           <div class="stat">
             <span class="stat-label">用时</span>
             <span class="stat-value" id="timer">00:00.0</span>
           </div>
-          <div class="stat">
-            <span class="stat-label">步数</span>
-            <span class="stat-value" id="moves">0</span>
-          </div>
-          <div class="stage-actions">
-            <button class="btn btn-ghost btn-sm" id="restartBtn" type="button">
-              重新打乱
-            </button>
-          </div>
         </div>
 
-        <div class="board-wrap">
-          <div
-            class="board"
-            id="board"
-            role="group"
-            aria-label="拼图棋盘"
-          ></div>
-
-          <div class="solved-overlay hidden" id="solvedOverlay">
-            <div class="solved-card">
-              <div class="solved-emoji" aria-hidden="true">🎉</div>
-              <h3>拼图完成！</h3>
-              <p class="solved-stats">
-                <span id="solvedTime">00:00.0</span>
-                <span id="solvedMoves">0 步</span>
-              </p>
-              <p class="solved-rank" id="solvedRank"></p>
-              <p class="solved-note" id="solvedNote"></p>
-              <div class="solved-actions">
-                <button class="btn btn-primary" id="playAgainBtn" type="button">
-                  再来一局
-                </button>
-                <a class="btn btn-ghost" href="leaderboard.html">看排行榜</a>
-              </div>
-            </div>
-          </div>
+        <div
+          id="game-container"
+          style="
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+          "
+        >
+          <canvas
+            id="gameCanvas"
+            width="800"
+            height="500"
+            style="
+              background: #0f0f1a;
+              border-radius: 8px;
+              cursor: none;
+              max-width: 100%;
+            "
+          ></canvas>
         </div>
 
-        <p class="status-text" id="status">正在加载拼图…</p>
+        <p
+          class="status-text"
+          id="status"
+          style="text-align: center; margin-top: 15px"
+        >
+          正在加载游戏…
+        </p>
       </section>
 
+      <!-- 侧边栏：战绩 -->
       <aside class="side">
         <section class="card">
-          <h2><span class="dot" aria-hidden="true"></span>难度</h2>
-          <div class="segmented" id="sizePicker">
-            <button class="active" type="button" data-size="3">
-              <strong>3×3</strong>
-              <span>简单</span>
-            </button>
-            <button type="button" data-size="4">
-              <strong>4×4</strong>
-              <span>中等</span>
-            </button>
-            <button type="button" data-size="5">
-              <strong>5×5</strong>
-              <span>困难</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2><span class="dot" aria-hidden="true"></span>图片</h2>
-          <div class="image-picker" id="imagePicker">
-            <button class="active" type="button" data-image="sunset">
-              <img src="assets/puzzle-sunset.svg" alt="日落山湖" />
-              <span>日落山湖</span>
-            </button>
-            <button type="button" data-image="neon">
-              <img src="assets/puzzle-neon.svg" alt="霓虹光环" />
-              <span>霓虹光环</span>
-            </button>
-          </div>
-
-          <label class="switch">
-            <input type="checkbox" id="showNumbers" />
-            显示拼块编号
-          </label>
-        </section>
-
-        <section class="card">
-          <h2><span class="dot" aria-hidden="true"></span>原图参考</h2>
-          <div class="reference">
-            <img
-              id="referenceImg"
-              src="assets/puzzle-sunset.svg"
-              alt="原图：日落山湖"
-            />
-          </div>
-        </section>
-
-        <section class="card">
-          <h2><span class="dot" aria-hidden="true"></span>我的战绩</h2>
+          <h2><span class="dot"></span>我的战绩</h2>
           <div class="record-list">
             <div class="record-line">
-              <span>本难度最佳</span>
-              <strong id="best">--:--.-</strong>
+              <span>历史最高关卡</span>
+              <strong id="bestLevel">-</strong>
             </div>
             <div class="record-line">
               <span>我的排名</span>
@@ -145,6 +100,7 @@
       </aside>
     </main>
 
+    <!-- 接入页面控制器 -->
     <script type="module" src="js/game-page.js"></script>
   </body>
 </html>

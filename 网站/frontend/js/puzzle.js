@@ -1,13 +1,20 @@
 /**
- * 滑块拼图核心逻辑（与界面无关的部分尽量保持纯粹）
+ * 滑块弹珠核心逻辑（与界面无关的部分尽量保持纯粹）
  *
  * 数据结构：tiles[位置] = 拼块编号
  *   - 拼块编号 0 ~ n²-2 对应原图从左到右、从上到下的切片
  *   - 编号 n²-1 为空格
- *   - 当且仅当 tiles[i] === i 时拼图完成
+ *   - 当且仅当 tiles[i] === i 时弹珠完成
  */
 export class PuzzleGame {
-  constructor({ board, size = 3, imageUrl, onFirstMove, onMove, onSolved } = {}) {
+  constructor({
+    board,
+    size = 3,
+    imageUrl,
+    onFirstMove,
+    onMove,
+    onSolved,
+  } = {}) {
     this.board = board;
     this.size = size;
     this.imageUrl = imageUrl;
@@ -50,7 +57,9 @@ export class PuzzleGame {
     let previous = -1;
 
     for (let step = 0; step < steps; step += 1) {
-      const options = this.neighbors(blank).filter((position) => position !== previous);
+      const options = this.neighbors(blank).filter(
+        (position) => position !== previous,
+      );
       const target = options[Math.floor(Math.random() * options.length)];
 
       this.tiles[blank] = this.tiles[target];

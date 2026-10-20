@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0a0918" />
-    <title>登录 · 拼图游戏</title>
+    <title>登录 · 弹珠游戏</title>
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧩%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔴%3C/text%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -15,10 +15,10 @@
   <body class="auth-page">
     <div class="auth-shell">
       <div class="auth-brand">
-        <div class="brand-mark" aria-hidden="true">🧩</div>
+        <div class="brand-mark" aria-hidden="true">🔴</div>
         <div>
-          <h1>拼图游戏</h1>
-          <p>登录后挑战最快拼图，登上排行榜</p>
+          <h1>弹珠游戏</h1>
+          <p>登录后挑战最快弹珠，登上排行榜</p>
         </div>
       </div>
 
@@ -72,13 +72,19 @@
             />
           </div>
 
-          <button class="btn btn-primary btn-block" id="loginSubmit" type="submit">
+          <button
+            class="btn btn-primary btn-block"
+            id="loginSubmit"
+            type="submit"
+          >
             登录
           </button>
 
           <p class="switch-line">
             还没有账号？
-            <button class="link-btn" type="button" data-switch="register">立即注册</button>
+            <button class="link-btn" type="button" data-switch="register">
+              立即注册
+            </button>
           </p>
         </form>
 
@@ -135,20 +141,27 @@
             />
           </div>
 
-          <button class="btn btn-primary btn-block" id="registerSubmit" type="submit">
+          <button
+            class="btn btn-primary btn-block"
+            id="registerSubmit"
+            type="submit"
+          >
             注册并进入游戏
           </button>
 
           <p class="switch-line">
             已有账号？
-            <button class="link-btn" type="button" data-switch="login">返回登录</button>
+            <button class="link-btn" type="button" data-switch="login">
+              返回登录
+            </button>
           </p>
         </form>
 
-        <ul class="feature-list">
-          <li><span class="ico" aria-hidden="true">🎮</span>3×3 / 4×4 / 5×5 三种难度任选</li>
-          <li><span class="ico" aria-hidden="true">⏱</span>实时计时与步数统计，记录每次成绩</li>
-          <li><span class="ico" aria-hidden="true">🏆</span>查看本人排名与全站排行榜</li>
+        <!-- 底部特性列表 -->
+        <ul class="features">
+          <li>🎮 弹珠撞墙，冲击更高关卡</li>
+          <li>⏱ 实时计时与计分，记录每次成绩</li>
+          <li>🏆 查看本人排名与全站排行榜</li>
         </ul>
       </div>
     </div>

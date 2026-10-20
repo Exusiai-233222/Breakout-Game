@@ -1,301 +1,129 @@
-/**
- * 游戏页：难度 / 图片选择、计时、成绩提交
- */
-import { api, redirectToLogin, requireUser } from "./api.js";
+import { BreakoutGame } from "./breakout.js";
+import { api, requireUser, logout } from "./api.js";
 import { mountNav } from "./nav.js";
-import { toast, ui } from "./ui.js";
-import { PuzzleGame } from "./puzzle.js";
 
-const IMAGES = [
-  { id: "sunset", name: "日落山湖", url: "assets/puzzle-sunset.svg" },
-  { id: "neon", name: "霓虹光环", url: "assets/puzzle-neon.svg" },
-];
+const canvas = document.getElementById("gameCanvas");
+const statusEl = document.getElementById("status");
+const timerEl = document.getElementById("timer");
+const levelDisplay = document.getElementById("levelDisplay");
+const targetDisplay = document.getElementById("targetDisplay");
+const scoreDisplay = document.getElementById("scoreDisplay");
+const bestLevelEl = document.getElementById("bestLevel");
+const myRankEl = document.getElementById("myRank");
 
-// 方向键：按下某个方向键时，把空格该方向上的拼块移过来
-const KEY_DIRECTIONS = {
-  ArrowUp: [1, 0],
-  ArrowDown: [-1, 0],
-  ArrowLeft: [0, 1],
-  ArrowRight: [0, -1],
-};
+let startTime = 0;
+let timerInterval = null;
+let game = null;
 
-const state = {
-  user: null,
-  size: 3,
-  imageId: "sunset",
-  game: null,
-  timerId: null,
-  startedAt: 0,
-  elapsedMs: 0,
-  running: false,
-  submitting: false,
-  roundId: 0,
-  stats: new Map(),
-};
-
-const el = (id) => document.getElementById(id);
+function formatTime(ms) {
+  const totalSec = ms / 1000;
+  const m = Math.floor(totalSec / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = Math.floor(totalSec % 60)
+    .toString()
+    .padStart(2, "0");
+  const t = Math.floor((ms % 1000) / 100);
+  return `${m}:${s}.${t}`;
+}
 
 function startTimer() {
-  if (state.running) return;
-
-  state.running = true;
-  state.startedAt = performance.now() - state.elapsedMs;
-
-  if (state.timerId) clearInterval(state.timerId);
-  state.timerId = setInterval(updateTimer, 100);
-  updateTimer();
+  startTime = Date.now();
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerEl.textContent = formatTime(Date.now() - startTime);
+  }, 100);
 }
 
 function stopTimer() {
-  if (state.timerId) {
-    clearInterval(state.timerId);
-    state.timerId = null;
-  }
-  if (state.running) {
-    state.elapsedMs = performance.now() - state.startedAt;
-  }
-  state.running = false;
-  updateTimer();
-}
-
-function currentElapsed() {
-  return state.running ? performance.now() - state.startedAt : state.elapsedMs;
-}
-
-function updateTimer() {
-  el("timer").textContent = ui.duration(currentElapsed());
-}
-
-function newGame() {
-  stopTimer();
-  state.elapsedMs = 0;
-  state.submitting = false;
-  state.roundId += 1;
-  hideOverlay();
-  updateTimer();
-
-  const image = IMAGES.find((item) => item.id === state.imageId) || IMAGES[0];
-  const reference = el("referenceImg");
-  reference.src = image.url;
-  reference.alt = `原图：${image.name}`;
-
-  state.game = new PuzzleGame({
-    board: el("board"),
-    size: state.size,
-    imageUrl: image.url,
-    onFirstMove: startTimer,
-    onMove: (moves) => {
-      el("moves").textContent = String(moves);
-    },
-    onSolved: handleSolved,
-  });
-
-  state.game.setShowNumbers(el("showNumbers").checked);
-  state.game.newGame();
-
-  el("moves").textContent = "0";
-  el("status").textContent = `${ui.sizeName(state.size)} · 点击与空格相邻的方块，也可以使用方向键移动。`;
-  updateBest();
-  updateRankLabel();
-}
-
-async function handleSolved({ moves }) {
-  stopTimer();
-
-  const durationMs = Math.round(state.elapsedMs);
-  showOverlay({ durationMs, moves, loading: true });
-  el("status").textContent = `🎉 完成！用时 ${ui.friendlyDuration(durationMs)}，共 ${moves} 步，正在保存成绩…`;
-
-  await submitRecord({ size: state.size, moves, durationMs, roundId: state.roundId });
-}
-
-async function submitRecord({ size, moves, durationMs, roundId }) {
-  if (state.submitting) return;
-  state.submitting = true;
-
-  try {
-    const result = await api("/records", {
-      method: "POST",
-      body: { size, moves, durationMs },
-    });
-
-    const isCurrentRound = state.roundId === roundId;
-    const previous = state.stats.get(size) || {};
-    state.stats.set(size, {
-      ...previous,
-      size,
-      bestMs: result.rank.bestMs,
-      bestMoves: result.rank.bestMoves,
-      rank: result.rank.rank,
-      totalPlayers: result.rank.total,
-      plays: (previous.plays || 0) + 1,
-    });
-
-    updateBest();
-    updateRankLabel();
-
-    // 提交期间如果已经重开一局，就不要再打扰当前这一局
-    if (!isCurrentRound) return;
-
-    showOverlay({ durationMs, moves, result });
-    el("status").textContent = `🎉 完成！用时 ${ui.friendlyDuration(durationMs)}，共 ${moves} 步。`;
-    toast(result.isBest ? "新纪录！成绩已保存" : "成绩已保存", "success");
-  } catch (error) {
-    if (state.roundId !== roundId) return;
-
-    showOverlay({ durationMs, moves, error: error.message });
-    el("status").textContent = "成绩保存失败，请检查网络后重新完成一局。";
-    toast(error.message, "error");
-  } finally {
-    state.submitting = false;
-  }
-}
-
-function showOverlay({ durationMs, moves, result, error, loading = false }) {
-  el("solvedTime").textContent = ui.duration(durationMs);
-  el("solvedMoves").textContent = `${moves} 步`;
-
-  const rankElement = el("solvedRank");
-  const noteElement = el("solvedNote");
-  rankElement.replaceChildren();
-  noteElement.textContent = "";
-
-  if (loading) {
-    rankElement.textContent = "正在保存成绩…";
-  } else if (error) {
-    rankElement.textContent = "成绩未能保存";
-    noteElement.textContent = error;
-  } else if (result) {
-    const strong = document.createElement("strong");
-    strong.textContent = String(result.rank.rank);
-    rankElement.append("本难度第 ", strong, ` 名 / 共 ${result.rank.total} 人`);
-    noteElement.textContent = result.isBest
-      ? "刷新了个人最佳成绩！"
-      : `个人最佳：${ui.duration(result.rank.bestMs)}`;
-  }
-
-  el("solvedOverlay").classList.remove("hidden");
-}
-
-function hideOverlay() {
-  el("solvedOverlay").classList.add("hidden");
+  if (timerInterval) clearInterval(timerInterval);
 }
 
 async function loadStats() {
   try {
-    const data = await api("/records/me");
-    state.stats = new Map(data.stats.map((item) => [item.size, item]));
-  } catch (error) {
-    if (error.status === 401) {
-      redirectToLogin();
-      return;
+    const data = await api("/records/me"); // 修复这里
+    const stat = data.stats.find((s) => s.size === 3);
+    if (stat && stat.bestLevel) {
+      bestLevelEl.textContent = `第 ${stat.bestLevel} 关`;
+      myRankEl.textContent = `第 ${stat.rank} 名 / 共 ${stat.totalPlayers} 人`;
+    } else {
+      bestLevelEl.textContent = "-";
+      myRankEl.textContent = "暂无成绩";
     }
-    toast(`个人成绩加载失败：${error.message}`, "error");
+  } catch (error) {
+    console.error("加载战绩失败", error);
   }
-
-  updateBest();
-  updateRankLabel();
-}
-
-function updateBest() {
-  const stats = state.stats.get(state.size);
-  el("best").textContent = stats && stats.bestMs ? ui.duration(stats.bestMs) : "--:--.-";
-}
-
-function updateRankLabel() {
-  const stats = state.stats.get(state.size);
-  if (stats && stats.rank) {
-    el("myRank").textContent = `第 ${stats.rank} 名 / 共 ${stats.totalPlayers} 人`;
-  } else {
-    el("myRank").textContent = "暂无成绩";
-  }
-}
-
-function bindPickers() {
-  el("sizePicker").addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-size]");
-    if (!button) return;
-
-    const size = Number(button.dataset.size);
-    if (size === state.size) return;
-
-    state.size = size;
-    el("sizePicker")
-      .querySelectorAll("button")
-      .forEach((item) => item.classList.toggle("active", item === button));
-    newGame();
-  });
-
-  el("imagePicker").addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-image]");
-    if (!button) return;
-
-    const image = IMAGES.find((item) => item.id === button.dataset.image);
-    if (!image || image.id === state.imageId) return;
-
-    state.imageId = image.id;
-    el("imagePicker")
-      .querySelectorAll("button")
-      .forEach((item) => item.classList.toggle("active", item === button));
-    newGame();
-  });
-
-  el("showNumbers").addEventListener("change", (event) => {
-    state.game?.setShowNumbers(event.target.checked);
-  });
-}
-
-function bindBoard() {
-  el("board").addEventListener("click", (event) => {
-    const tile = event.target.closest(".tile");
-    if (!tile || !state.game) return;
-
-    const piece = Number(tile.dataset.piece);
-    state.game.move(state.game.positionOf(piece));
-  });
-}
-
-function bindActions() {
-  el("restartBtn").addEventListener("click", newGame);
-  el("playAgainBtn").addEventListener("click", newGame);
-}
-
-function handleKeydown(event) {
-  if (!state.game || state.game.solved) return;
-  if (event.target instanceof HTMLInputElement) return;
-
-  const direction = KEY_DIRECTIONS[event.key];
-  if (!direction) return;
-
-  event.preventDefault();
-
-  const size = state.size;
-  const blank = state.game.tiles.indexOf(state.game.blankPiece);
-  const row = Math.floor(blank / size) + direction[0];
-  const column = (blank % size) + direction[1];
-
-  if (row < 0 || row >= size || column < 0 || column >= size) return;
-  state.game.move(row * size + column);
 }
 
 async function init() {
+  // 使用 requireUser 自动处理未登录跳转，防止死循环
   const user = await requireUser();
   if (!user) return;
 
-  state.user = user;
   mountNav(user);
 
-  bindPickers();
-  bindBoard();
-  bindActions();
+  game = new BreakoutGame(canvas, {
+    onScoreUpdate: (score, level, target) => {
+      scoreDisplay.textContent = score;
+      levelDisplay.textContent = level;
+      targetDisplay.textContent = target;
+    },
+    onLevelUp: (level) => {
+      statusEl.textContent = `第 ${level} 关完成！准备下一关...`;
+    },
+    onGameOver: async (finalLevel) => {
+      stopTimer();
+      const durationMs = Date.now() - startTime;
+      statusEl.textContent = `游戏结束！到达第 ${finalLevel} 关，用时 ${formatTime(durationMs)}`;
 
-  await loadStats();
-  newGame();
+      try {
+        statusEl.textContent += "，正在保存成绩...";
+        // 修复这里，使用 api() 并指定 method
+        const res = await api("/records", {
+          method: "POST",
+          body: {
+            size: 3,
+            level: finalLevel,
+            durationMs: durationMs,
+          },
+        });
 
-  window.addEventListener("keydown", handleKeydown);
+        if (res.isBest) {
+          statusEl.textContent = `🎉 新纪录！第 ${finalLevel} 关，排名第 ${res.rank.rank}！点击屏幕重新开始。`;
+        } else {
+          statusEl.textContent = `游戏结束！第 ${finalLevel} 关。点击屏幕重新开始。`;
+        }
+        loadStats();
+      } catch (error) {
+        statusEl.textContent = `成绩保存失败：${error.message}。点击屏幕重新开始。`;
+      }
+    },
+  });
+
+  statusEl.textContent = "点击画布或按任意键开始游戏！";
+  loadStats();
+
+  const startAction = () => {
+    if (game.isGameOver || (!game.isPlaying && !game.isCountdown)) {
+      statusEl.textContent = "游戏进行中...";
+      timerEl.textContent = "00:00.0";
+      startTimer();
+      game.start();
+    }
+  };
+
+  canvas.addEventListener("click", startAction);
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && e.target === document.body) {
+      e.preventDefault();
+      startAction();
+    }
+  });
+
+  // 绑定退出按钮
+  document.getElementById("authBtn").addEventListener("click", () => {
+    logout();
+  });
 }
 
-init().catch((error) => {
-  console.error(error);
-  toast(`页面初始化失败：${error.message}`, "error");
-});
+init();

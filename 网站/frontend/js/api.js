@@ -39,7 +39,10 @@ export async function api(path, { method = "GET", body } = {}) {
   }
 
   if (!response.ok) {
-    throw new ApiError(data?.error || `请求失败（${response.status}）`, response.status);
+    throw new ApiError(
+      data?.error || `请求失败（${response.status}）`,
+      response.status,
+    );
   }
 
   return data;

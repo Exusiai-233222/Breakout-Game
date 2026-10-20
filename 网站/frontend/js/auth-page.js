@@ -39,7 +39,11 @@ function bindTabs() {
   document.querySelectorAll("[data-switch]").forEach((button) => {
     button.addEventListener("click", () => {
       switchTab(button.dataset.switch);
-      const firstInput = el(button.dataset.switch === "login" ? "loginUsername" : "registerUsername");
+      const firstInput = el(
+        button.dataset.switch === "login"
+          ? "loginUsername"
+          : "registerUsername",
+      );
       firstInput?.focus();
     });
   });
@@ -63,7 +67,10 @@ async function handleLogin(event) {
   setButtonLoading(button, true, "登录中…");
 
   try {
-    const data = await api("/login", { method: "POST", body: { username, password } });
+    const data = await api("/login", {
+      method: "POST",
+      body: { username, password },
+    });
     toast(`欢迎回来，${data.user.username}`, "success");
     location.replace(next);
   } catch (error) {
@@ -109,7 +116,7 @@ async function handleRegister(event) {
 
   try {
     await api("/register", { method: "POST", body });
-    toast("注册成功，开始拼图吧！", "success");
+    toast("注册成功，开始弹珠吧！", "success");
     location.replace(next);
   } catch (error) {
     showError(errorBox, error.message);

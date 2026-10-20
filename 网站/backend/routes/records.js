@@ -1,75 +1,75 @@
-/**
- * 成绩与排行榜接口
- *   POST /api/records       提交一局完成成绩
- *   GET  /api/records/me    我的成绩汇总与最近记录
- *   GET  /api/leaderboard   某个难度的排行榜
- */
 const express = require("express");
 const pool = require("../db");
 const { requireLogin } = require("../middleware/auth");
-const { SIZES, LIMITS, LEADERBOARD_LIMIT } = require("../config");
-const { getBoard, getUserStats, getRecentRecords } = require("../services/ranking");
-const { mapUser } = require("../utils/validate");
+const { getLeaderboard, getUserStats } = require("../services/ranking");
 
 const router = express.Router();
 
-function toInt(value) {
-  const number = Number(value);
-  return Number.isInteger(number) ? number : null;
-}
-
-function normalizeSize(raw) {
-  const size = toInt(raw);
-  return SIZES.includes(size) ? size : null;
-}
-
-/** 提交成绩 */
-router.post("/records", requireLogin, async (req, res, next) => {
+/** 提交一局成绩 */
+router.post("/", requireLogin, async (req, res, next) => {
   try {
-    const size = normalizeSize(req.body.size);
-    const moves = toInt(req.body.moves);
-    const durationMs = toInt(req.body.durationMs);
+    // 接收 level 和 durationMs
+    const size = Number(req.body.size) || 3; // 弹珠游戏可以固定传 3
+    const level = Number(req.body.level);
+    const durationMs = Number(req.body.durationMs);
+    const moves = Number(req.body.moves) || 0; // 弹珠游戏没有步数，传0即可
 
-    if (!size) {
-      return res.status(400).json({ error: "难度不合法" });
+    // 参数校验
+    if (!Number.isInteger(level) || level < 1) {
+      return res.status(400).json({ error: "关卡数不合法" });
     }
-    if (moves === null || moves < LIMITS.MIN_MOVES || moves > LIMITS.MAX_MOVES) {
-      return res.status(400).json({ error: "步数不合法，成绩未保存" });
-    }
-    if (
-      durationMs === null ||
-      durationMs < LIMITS.MIN_DURATION_MS ||
-      durationMs > LIMITS.MAX_DURATION_MS
-    ) {
-      return res.status(400).json({ error: "完成时间不合法，成绩未保存" });
+    if (!Number.isInteger(durationMs) || durationMs < 800) {
+      return res.status(400).json({ error: "用时太短，疑似作弊" });
     }
 
-    const userId = req.session.userId;
-
-    // 提交前的最佳成绩，用于判断是否刷新个人记录
-    const [prevRows] = await pool.execute(
-      "SELECT MIN(duration_ms) AS best FROM puzzle_records WHERE user_id = ? AND size = ?",
-      [userId, size],
+    // 查询历史最佳（用于判断是否破纪录）
+    // 规则：先看关卡，关卡高更好；同关卡，用时短更好
+    const [bestRows] = await pool.execute(
+      `SELECT level, duration_ms FROM puzzle_records 
+       WHERE user_id = ? AND size = ? 
+       ORDER BY level DESC, duration_ms ASC LIMIT 1`,
+      [req.session.userId, size],
     );
-    const previousBest = prevRows[0].best === null ? null : Number(prevRows[0].best);
 
+    let isBest = true;
+    if (bestRows.length > 0) {
+      const best = bestRows[0];
+      // 如果以前关卡更高，或者关卡一样但时间更短，说明不是最佳
+      if (
+        best.level > level ||
+        (best.level === level && best.duration_ms <= durationMs)
+      ) {
+        isBest = false;
+      }
+    }
+
+    // 插入成绩
     const [result] = await pool.execute(
-      "INSERT INTO puzzle_records (user_id, size, moves, duration_ms) VALUES (?, ?, ?, ?)",
-      [userId, size, moves, durationMs],
+      `INSERT INTO puzzle_records (user_id, size, level, moves, duration_ms) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [req.session.userId, size, level, moves, durationMs],
     );
 
-    const board = await getBoard(size);
-    const me = board.find((entry) => entry.userId === userId) || null;
+    // 获取提交后的最新排名
+    const stats = await getUserStats(req.session.userId);
+    const currentStat = stats.find((s) => s.size === size);
 
     res.status(201).json({
       ok: true,
-      record: { id: result.insertId, size, moves, durationMs, completedAt: new Date() },
-      isBest: previousBest === null || durationMs < previousBest,
+      record: {
+        id: result.insertId,
+        size,
+        level,
+        moves,
+        durationMs,
+        completedAt: new Date(),
+      },
+      isBest,
       rank: {
-        rank: me ? me.rank : null,
-        total: board.length,
-        bestMs: me ? me.durationMs : durationMs,
-        bestMoves: me ? me.moves : moves,
+        rank: currentStat.rank,
+        total: currentStat.totalPlayers,
+        bestLevel: currentStat.bestLevel,
+        bestMs: currentStat.bestMs,
       },
     });
   } catch (error) {
@@ -77,62 +77,36 @@ router.post("/records", requireLogin, async (req, res, next) => {
   }
 });
 
-/** 我的成绩：三档难度的最佳成绩 / 名次 / 次数 + 最近记录 */
-router.get("/records/me", requireLogin, async (req, res, next) => {
+/** 我的成绩汇总与最近记录 */
+router.get("/me", requireLogin, async (req, res, next) => {
   try {
-    const [rows] = await pool.execute(
-      "SELECT id, username, email, created_at FROM users WHERE id = ?",
+    const stats = await getUserStats(req.session.userId);
+
+    // 查最近 20 条记录
+    const [records] = await pool.execute(
+      `SELECT id, size, level, moves, duration_ms AS durationMs, completed_at AS completedAt 
+       FROM puzzle_records WHERE user_id = ? 
+       ORDER BY completed_at DESC LIMIT 20`,
       [req.session.userId],
     );
 
-    if (rows.length === 0) {
-      return res.status(401).json({ error: "账号不存在，请重新登录" });
-    }
-
-    const [stats, records] = await Promise.all([
-      getUserStats(req.session.userId),
-      getRecentRecords(req.session.userId),
-    ]);
-
-    res.json({ ok: true, user: mapUser(rows[0]), stats, records });
+    res.json({
+      ok: true,
+      user: { id: req.session.userId },
+      stats,
+      records,
+    });
   } catch (error) {
     next(error);
   }
 });
 
-/** 排行榜：默认 3×3，可传 ?size=4 */
+/** 排行榜 */
 router.get("/leaderboard", async (req, res, next) => {
   try {
-    const size = normalizeSize(req.query.size) || 3;
-    const board = await getBoard(size);
-    const userId = req.session.userId || null;
-
-    const entries = board.slice(0, LEADERBOARD_LIMIT).map((entry) => ({
-      rank: entry.rank,
-      username: entry.username,
-      durationMs: entry.durationMs,
-      moves: entry.moves,
-      completedAt: entry.completedAt,
-      isMe: entry.userId === userId,
-    }));
-
-    const mine = userId ? board.find((entry) => entry.userId === userId) : null;
-
-    res.json({
-      ok: true,
-      size,
-      total: board.length,
-      entries,
-      me: mine
-        ? {
-            rank: mine.rank,
-            username: mine.username,
-            durationMs: mine.durationMs,
-            moves: mine.moves,
-            completedAt: mine.completedAt,
-          }
-        : null,
-    });
+    const size = Number(req.query.size) || 3;
+    const data = await getLeaderboard(size, req.session.userId);
+    res.json({ ok: true, ...data });
   } catch (error) {
     next(error);
   }

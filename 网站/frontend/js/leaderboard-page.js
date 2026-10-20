@@ -1,144 +1,70 @@
-/**
- * 排行榜页：三档难度切换、本人排名高亮
- */
 import { api, getCurrentUser } from "./api.js";
 import { mountNav } from "./nav.js";
-import { toast, ui } from "./ui.js";
 
-const state = { size: 3, user: null };
-const el = (id) => document.getElementById(id);
+const leaderBody = document.getElementById("leaderBody");
+const boardDesc = document.getElementById("boardDesc");
+const myRankBox = document.getElementById("myRankBox");
 
-function createCell(text, className = "") {
-  const cell = document.createElement("td");
-  cell.textContent = text;
-  if (className) cell.className = className;
-  return cell;
-}
+async function loadLeaderboard() {
+  boardDesc.textContent = "正在加载...";
+  leaderBody.innerHTML = "";
+  myRankBox.innerHTML = "";
 
-function renderTable(data) {
-  const tbody = el("leaderBody");
-  tbody.replaceChildren();
+  try {
+    // 固定请求 size=3 的榜单（弹珠游戏）
+    const data = await api(`/leaderboard?size=3`);
 
-  if (!data.entries.length) {
-    const row = document.createElement("tr");
-    const cell = document.createElement("td");
-    cell.colSpan = 5;
-    cell.className = "empty";
-    const emoji = document.createElement("span");
-    emoji.className = "emoji";
-    emoji.textContent = "🏁";
-    cell.append(emoji, "这个难度还没有人完成，快来抢占第一名！");
-    row.append(cell);
-    tbody.append(row);
-    return;
-  }
+    boardDesc.textContent = `共 ${data.total} 名玩家参与`;
 
-  for (const entry of data.entries) {
-    const row = document.createElement("tr");
-    if (entry.isMe) row.className = "me";
+    if (data.entries.length === 0) {
+      leaderBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888;">暂无成绩，快去挑战吧！</td></tr>`;
+    } else {
+      data.entries.forEach((entry) => {
+        const tr = document.createElement("tr");
+        if (entry.isMe) tr.style.backgroundColor = "rgba(102, 126, 234, 0.1)";
 
-    const rankCell = document.createElement("td");
-    const badge = document.createElement("span");
-    badge.className = ui.rankClass(entry.rank);
-    badge.textContent = String(entry.rank);
-    rankCell.append(badge);
+        let rankDisplay = entry.rank;
+        if (entry.rank === 1) rankDisplay = "🥇 1";
+        if (entry.rank === 2) rankDisplay = "🥈 2";
+        if (entry.rank === 3) rankDisplay = "🥉 3";
 
-    const nameCell = document.createElement("td");
-    nameCell.textContent = entry.username;
-    if (entry.isMe) {
-      const tag = document.createElement("span");
-      tag.className = "me-tag";
-      tag.textContent = "我";
-      nameCell.append(tag);
+        const totalSec = entry.durationMs / 1000;
+        const m = Math.floor(totalSec / 60)
+          .toString()
+          .padStart(2, "0");
+        const s = Math.floor(totalSec % 60)
+          .toString()
+          .padStart(2, "0");
+        const t = Math.floor((entry.durationMs % 1000) / 100);
+        const timeStr = `${m}:${s}.${t}`;
+
+        tr.innerHTML = `
+          <td>${rankDisplay}</td>
+          <td>${entry.username} ${entry.isMe ? '<span style="color:#667eea">(我)</span>' : ""}</td>
+          <td style="color: #ffcc00; font-weight: bold;">第 ${entry.level} 关</td>
+          <td>${timeStr}</td>
+          <td>${new Date(entry.completedAt).toLocaleString()}</td>
+        `;
+        leaderBody.appendChild(tr);
+      });
     }
 
-    row.append(
-      rankCell,
-      nameCell,
-      createCell(ui.duration(entry.durationMs), "num"),
-      createCell(`${entry.moves} 步`, "num"),
-      createCell(ui.shortDate(entry.completedAt)),
-    );
-    tbody.append(row);
+    if (data.me) {
+      myRankBox.innerHTML = `我的最佳成绩：<strong>第 ${data.me.level} 关</strong>（${(data.me.durationMs / 1000).toFixed(1)}秒），当前排名第 <strong>${data.me.rank}</strong> 名`;
+    } else {
+      myRankBox.innerHTML = `你还没有成绩，快去挑战吧！`;
+    }
+  } catch (error) {
+    boardDesc.textContent = "加载失败：" + error.message;
   }
-}
-
-function renderMyRank(data) {
-  const box = el("myRankBox");
-  box.replaceChildren();
-
-  if (!state.user) {
-    const text = document.createElement("span");
-    text.textContent = "登录后即可查看自己的排名";
-    const link = document.createElement("a");
-    link.className = "btn btn-ghost btn-sm";
-    link.href = "index.html";
-    link.textContent = "去登录";
-    box.append(text, link);
-    return;
-  }
-
-  if (!data.me) {
-    const text = document.createElement("span");
-    text.textContent = `你还没有 ${ui.sizeName(data.size)} 难度的成绩`;
-    const link = document.createElement("a");
-    link.className = "btn btn-primary btn-sm";
-    link.href = "game.html";
-    link.textContent = "去挑战";
-    box.append(text, link);
-    return;
-  }
-
-  const label = document.createElement("span");
-  label.textContent = "我的排名";
-
-  const value = document.createElement("strong");
-  const rankText = document.createElement("span");
-  rankText.className = "rank-highlight";
-  rankText.textContent = `第 ${data.me.rank} 名`;
-  value.append(rankText, ` / 共 ${data.total} 人`);
-
-  const best = document.createElement("span");
-  best.textContent = `最佳 ${ui.duration(data.me.durationMs)} · ${data.me.moves} 步`;
-
-  box.append(label, value, best);
-}
-
-async function load(size) {
-  state.size = size;
-  const data = await api(`/leaderboard?size=${size}`);
-  el("boardDesc").textContent = `${ui.sizeName(size)} 难度 · 共 ${data.total} 位玩家完成挑战（按个人最佳用时排名）`;
-  renderTable(data);
-  renderMyRank(data);
-}
-
-function bindTabs() {
-  const tabs = document.querySelectorAll("[data-size]");
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", async () => {
-      tabs.forEach((item) => item.classList.toggle("active", item === tab));
-      try {
-        await load(Number(tab.dataset.size));
-      } catch (error) {
-        toast(`排行榜加载失败：${error.message}`, "error");
-      }
-    });
-  });
 }
 
 async function init() {
-  state.user = await getCurrentUser().catch(() => null);
-  mountNav(state.user);
-  bindTabs();
-
   try {
-    await load(3);
-  } catch (error) {
-    toast(`排行榜加载失败：${error.message}`, "error");
-  }
+    const user = await getCurrentUser();
+    if (user) mountNav(user);
+  } catch (e) {}
+  loadLeaderboard(); // 直接加载
 }
 
-init().catch((error) => {
-  console.error(error);
-  toast(`页面初始化失败：${error.message}`, "error");
-});
+init();

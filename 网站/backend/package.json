@@ -1,7 +1,7 @@
 {
   "name": "login-system",
   "version": "2.0.0",
-  "description": "网页版拼图游戏：注册登录、修改密码、成绩记录与排行榜",
+  "description": "网页版弹珠游戏：注册登录、修改密码、成绩记录与排行榜",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

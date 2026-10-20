@@ -1,5 +1,5 @@
 -- ============================================================
--- 拼图游戏 · MySQL 8 数据库结构（非 SQLite）
+-- 弹珠游戏 · MySQL 8 数据库结构（非 SQLite）
 --
 -- 语法说明：InnoDB、AUTO_INCREMENT、utf8mb4、TIMESTAMP、
 --           外键约束、CHECK 约束（MySQL 8.0.16+ 强制执行）
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
   COLLATE = utf8mb4_unicode_ci
   COMMENT = '用户表';
 
--- 拼图完成记录表：一条记录 = 用户完成一局的一次成绩
+-- 弹珠完成记录表：一条记录 = 用户完成一局的一次成绩
 CREATE TABLE IF NOT EXISTS puzzle_records (
   id           INT       NOT NULL AUTO_INCREMENT,
   user_id      INT       NOT NULL COMMENT '关联 users.id',
@@ -48,4 +48,4 @@ CREATE TABLE IF NOT EXISTS puzzle_records (
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci
-  COMMENT = '拼图完成记录';
+  COMMENT = '弹珠完成记录';

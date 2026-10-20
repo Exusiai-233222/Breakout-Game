@@ -3,29 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0918" />
-    <title>个人中心 · 拼图游戏</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧩%3C/text%3E%3C/svg%3E"
-    />
+    <title>个人中心 · 弹珠挑战</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-
   <body>
     <header class="topbar">
       <a class="brand" href="game.html">
-        <span class="brand-mark" aria-hidden="true">🧩</span>
-        拼图游戏
+        <span class="brand-mark"></span>
+        弹珠挑战
       </a>
-      <nav class="nav" aria-label="主导航">
+      <nav class="nav">
         <a href="game.html">游戏</a>
         <a href="leaderboard.html">排行榜</a>
-        <a href="profile.html" class="active" aria-current="page">我的</a>
+        <a href="profile.html" class="active">我的</a>
       </nav>
       <div class="user-chip">
         <span class="user-name" id="navUser"></span>
-        <button class="btn btn-ghost btn-sm" id="authBtn" type="button">退出</button>
+        <button class="btn btn-ghost btn-sm" id="authBtn" type="button">
+          退出
+        </button>
       </div>
     </header>
 
@@ -37,85 +33,76 @@
 
       <section class="card user-card">
         <div class="user-meta">
-          <div class="avatar" id="avatar" aria-hidden="true">?</div>
+          <div class="avatar" id="avatar">?</div>
           <div>
-            <h1 id="profileName">加载中…</h1>
+            <h1 id="profileName">加载中...</h1>
             <p id="profileEmail"></p>
             <p id="profileJoined"></p>
           </div>
         </div>
       </section>
 
+      <!-- 这里用来动态插入游戏战绩卡片 -->
       <div class="profile-grid" id="statsGrid"></div>
 
       <div class="two-col">
         <section class="card">
-          <h2><span class="dot" aria-hidden="true"></span>最近成绩</h2>
-          <div class="table-wrap">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>难度</th>
-                  <th>用时</th>
-                  <th>步数</th>
-                  <th>完成时间</th>
-                </tr>
-              </thead>
-              <tbody id="recentBody"></tbody>
-            </table>
-          </div>
-        </section>
+          <h2><span class="dot"></span>修改密码</h2>
+          <div
+            class="form-error"
+            id="passwordError"
+            style="color: #ff4444; margin-bottom: 10px"
+          ></div>
+          <div
+            class="form-success"
+            id="passwordSuccess"
+            style="color: #00cc66; margin-bottom: 10px"
+          ></div>
 
-        <section class="card">
-          <h2><span class="dot" aria-hidden="true"></span>修改密码</h2>
-
-          <div class="form-error" id="passwordError" role="alert"></div>
-          <div class="form-success" id="passwordSuccess" role="status"></div>
-
-          <form id="passwordForm" novalidate>
+          <form id="passwordForm">
             <div class="field">
-              <label for="oldPassword">原密码</label>
+              <label>原密码</label>
               <input
-                class="input"
+                type="password"
                 id="oldPassword"
-                type="password"
-                autocomplete="current-password"
+                class="input"
                 placeholder="请输入当前密码"
+                required
               />
             </div>
-
             <div class="field">
-              <label for="newPassword">新密码</label>
+              <label>新密码</label>
               <input
-                class="input"
+                type="password"
                 id="newPassword"
-                type="password"
-                autocomplete="new-password"
-                placeholder="至少 6 位"
-              />
-            </div>
-
-            <div class="field">
-              <label for="confirmPassword">确认新密码</label>
-              <input
                 class="input"
-                id="confirmPassword"
-                type="password"
-                autocomplete="new-password"
-                placeholder="请再次输入新密码"
+                placeholder="至少 6 位"
+                required
               />
             </div>
-
-            <button class="btn btn-primary btn-block" id="passwordSubmit" type="submit">
+            <div class="field">
+              <label>确认新密码</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                class="input"
+                placeholder="请再次输入新密码"
+                required
+              />
+            </div>
+            <button
+              class="btn btn-primary btn-block"
+              type="submit"
+              style="margin-top: 15px"
+            >
               保存新密码
             </button>
-
-            <p class="switch-line">修改成功后，当前登录状态保持有效。</p>
           </form>
         </section>
       </div>
     </main>
 
+    <!-- 必须通过 script 标签引入外部 js 文件 -->
     <script type="module" src="js/profile-page.js"></script>
   </body>
 </html>

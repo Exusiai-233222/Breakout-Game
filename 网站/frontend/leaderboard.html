@@ -3,20 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0918" />
-    <title>排行榜 · 拼图游戏</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧩%3C/text%3E%3C/svg%3E"
-    />
+    <title>排行榜 · 弹珠挑战</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-
   <body>
     <header class="topbar">
       <a class="brand" href="game.html">
-        <span class="brand-mark" aria-hidden="true">🧩</span>
-        拼图游戏
+        <span class="brand-mark" aria-hidden="true"></span>
+        弹珠挑战
       </a>
       <nav class="nav" aria-label="主导航">
         <a href="game.html">游戏</a>
@@ -25,20 +19,17 @@
       </nav>
       <div class="user-chip">
         <span class="user-name" id="navUser"></span>
-        <button class="btn btn-ghost btn-sm" id="authBtn" type="button">登录</button>
+        <button class="btn btn-ghost btn-sm" id="authBtn" type="button">
+          登录
+        </button>
       </div>
     </header>
 
     <main class="page">
       <div class="board-head">
         <div>
-          <h1>排行榜</h1>
-          <p id="boardDesc">正在加载排行榜…</p>
-        </div>
-        <div class="leader-tabs" role="tablist" aria-label="选择难度">
-          <button class="active" type="button" role="tab" data-size="3">3×3 简单</button>
-          <button type="button" role="tab" data-size="4">4×4 中等</button>
-          <button type="button" role="tab" data-size="5">5×5 困难</button>
+          <h1>弹珠挑战排行榜</h1>
+          <p id="boardDesc">正在加载...</p>
         </div>
       </div>
 
@@ -49,15 +40,14 @@
               <tr>
                 <th>名次</th>
                 <th>玩家</th>
+                <th>最高关卡</th>
                 <th>最佳用时</th>
-                <th>步数</th>
                 <th>完成时间</th>
               </tr>
             </thead>
             <tbody id="leaderBody"></tbody>
           </table>
         </div>
-
         <div class="my-rank" id="myRankBox"></div>
       </section>
     </main>
